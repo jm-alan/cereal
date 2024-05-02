@@ -1,14 +1,48 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
+let commaBytes = ",".utf8
+let doubleQuoteBytes = "\"".utf8
+let tripleDoubleQuoteBytes = "\"\"\"".utf8
+let colonBytes = ":".utf8
+let selfBytes = "self".utf8
+let dotBytes = ".".utf8
+let backslashBytes = "\\".utf8
+let openParenBytes = "(".utf8
+let closeParenBytes = ")".utf8
+let invokeParenBytes = "()".utf8
+let openBraceBytes = "{".utf8
+let closeBraceBytes = "}".utf8
+let serializeBytes = "serialize".utf8
+let parseDotEscapeBytes = "Parse.escape".utf8
+
+
+let inlineSerializable = ["Bool", "Int", "Float", "Double", "String"]
+
 public enum Lex {
     static func parseAs(enum declaration: EnumDeclSyntax) throws -> [ExtensionDeclSyntax] {
         return []
     }
 
     static func parseAs(struct declaration: StructDeclSyntax) throws -> [ExtensionDeclSyntax] {
-        var funcBody = try declaration
-            .memberBlock
+        try createExtension(
+            from: declaration.memberBlock,
+            for: declaration.name.trimmedDescription
+        )
+    }
+
+    static func parseAs(class declaration: ClassDeclSyntax) throws -> [ExtensionDeclSyntax] {
+        try createExtension(
+            from: declaration.memberBlock,
+            for: declaration.name.trimmedDescription
+        )
+    }
+
+    static func createExtension(
+        from memberBlock: MemberBlockSyntax,
+        for name: String
+    ) throws -> [ExtensionDeclSyntax] {
+        let processedTypes = try memberBlock
             .members
             .compactMap { $0.decl.as(VariableDeclSyntax.self) }
             .compactMap { memb -> (IdentifierPatternSyntax, TypeSyntax)? in
@@ -47,13 +81,17 @@ public enum Lex {
                         false
                     )
                 } else {
-                    throw CerealError.unserializable("Unable to serialze type \(type.trimmedDescription)")
+                    throw CerealError.unserializable(
+                        "Unable to serialze type \(type.trimmedDescription)"
+                    )
                 }
             }
+
+        var funcBody = processedTypes
             .map { tup in
                 let (varName, typeName, isOptional) = tup
 
-                guard !isOptional else {
+                guard !isOptional && inlineSerializable.contains(typeName) else {
                     return "\"\(varName)\":\\(self.\(varName).serialize())"
                 }
 
@@ -63,7 +101,8 @@ public enum Lex {
                 case "String":
                     "\"\(varName)\":\"\\(Parse.escape(string: self.\(varName)))\""
                 default:
-                    "\"\(varName)\":\\(self.\(varName).serialize())"
+                    fatalError("We should never get here")
+
                 }
             }
             .joined(separator: ",")
@@ -71,7 +110,7 @@ public enum Lex {
         funcBody = "{\(funcBody)}"
 
         return try [ExtensionDeclSyntax("""
-        extension \(raw: declaration.name.trimmedDescription): Serializable {
+        extension \(raw: name): Serializable {
             @inlinable
             @inline(__always)
             public func serialize() -> String {
@@ -81,9 +120,5 @@ public enum Lex {
             }
         }
         """)]
-    }
-
-    static func parseAs(class declaration: ClassDeclSyntax) throws -> [ExtensionDeclSyntax] {
-        return []
     }
 }
