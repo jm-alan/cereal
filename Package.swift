@@ -1,8 +1,8 @@
 // swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
-import PackageDescription
 import CompilerPluginSupport
+import PackageDescription
 
 let package = Package(
     name: "Cereal",
@@ -20,6 +20,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
+        .package(url: "https://github.com/swift-extras/swift-extras-json.git", .upToNextMajor(from: "0.6.0")),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -29,7 +30,7 @@ let package = Package(
             name: "CerealMacros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ]
         ),
 
@@ -37,7 +38,13 @@ let package = Package(
         .target(name: "Cereal", dependencies: ["CerealMacros"]),
 
         // A client of the library, which is able to use the macro in its own code.
-        .executableTarget(name: "CerealClient", dependencies: ["Cereal"]),
+        .executableTarget(
+            name: "CerealClient",
+            dependencies: [
+                "Cereal",
+                .product(name: "ExtrasJSON", package: "swift-extras-json"),
+            ]
+        ),
 
         // A test target used to develop the macro implementation.
         .testTarget(

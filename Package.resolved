@@ -1,6 +1,15 @@
 {
-  "originHash" : "78e5353e3e02eb1a9bf32b920f558f179a60fb26f96de3d6b58696c2f137ed6c",
+  "originHash" : "bebea1280619c7793b04475763a04f60efa220f014aac335282603430810685d",
   "pins" : [
+    {
+      "identity" : "swift-extras-json",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-extras/swift-extras-json.git",
+      "state" : {
+        "revision" : "122b9454ef01bf89a4c190b8fd3717ddd0a2fbd0",
+        "version" : "0.6.0"
+      }
+    },
     {
       "identity" : "swift-syntax",
       "kind" : "remoteSourceControl",
