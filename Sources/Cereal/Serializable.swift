@@ -1,13 +1,11 @@
-import CerealMacros
-
 public protocol Serializable {
     func serialize() -> String
 }
 
-extension Serializable {
+public extension Serializable {
     @inlinable
     @inline(__always)
-    public func serialize() -> String {
+    func serialize() -> String {
         "\(self)"
     }
 }
@@ -33,7 +31,7 @@ extension Array: Serializable where Element: Serializable {
     @inlinable
     @inline(__always)
     public func serialize() -> String {
-        return "[\(self.map { $0.serialize() }.joined(separator: ","))]"
+        return "[\(map { $0.serialize() }.joined(separator: ","))]"
     }
 }
 
@@ -42,8 +40,7 @@ extension Dictionary: Serializable where Key: Serializable, Value: Serializable 
     @inline(__always)
     public func serialize() -> String {
         """
-        {\(self
-            .map { "\($0.key.serialize()):\($0.value.serialize())" }
+        {\(map { "\($0.key.serialize()):\($0.value.serialize())" }
             .joined(separator: ",")
         )}
         """
@@ -62,4 +59,3 @@ extension Optional: Serializable where Wrapped: Serializable {
         }
     }
 }
-

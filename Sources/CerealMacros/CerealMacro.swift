@@ -5,11 +5,11 @@ import SwiftSyntaxMacros
 
 public struct CerealMacro: ExtensionMacro {
     public static func expansion(
-        of node: AttributeSyntax,
+        of _: AttributeSyntax,
         attachedTo declaration: some DeclGroupSyntax,
-        providingExtensionsOf type: some TypeSyntaxProtocol,
-        conformingTo protocols: [TypeSyntax],
-        in context: some MacroExpansionContext
+        providingExtensionsOf _: some TypeSyntaxProtocol,
+        conformingTo _: [TypeSyntax],
+        in _: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
         if let castDecl = declaration.as(EnumDeclSyntax.self) {
             return try Lex.parseAs(enum: castDecl)
@@ -32,6 +32,6 @@ enum CerealError: Error {
 @main
 struct CerealPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        CerealMacro.self
+        CerealMacro.self,
     ]
 }
